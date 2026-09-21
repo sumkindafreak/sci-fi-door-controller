@@ -17,7 +17,7 @@ static const uint8_t OLED_ADDRESS=0x3C;
 static const uint16_t SCREEN_WIDTH=128, SCREEN_HEIGHT=64, MAX_PIXELS=1024;
 static const int8_t OLED_RESET=-1;
 static const uint32_t SWITCH_DEBOUNCE_MS=35;
-static const char* FW_VERSION="0.2.0";
+static const char* FW_VERSION="0.3.0";
 static const char* AP_SSID="SCI-FI-DOOR";
 static const char* AP_PASSWORD="portal123";
 
@@ -129,8 +129,8 @@ String page(){
  h+="<div><label>Pixel count</label><input name='pixels' type='number' min='1' max='1024' value='"+String(cfg.pixelCount)+"'></div>";
  h+="<div><label>Brightness (1-255)</label><input name='brightness' type='number' min='1' max='255' value='"+String(cfg.brightness)+"'></div></div>";
  h+="<label>Colour</label><input name='colour' type='color' value='#"+String(cfg.red<16?"0":"")+String(cfg.red,HEX)+String(cfg.green<16?"0":"")+String(cfg.green,HEX)+String(cfg.blue<16?"0":"")+String(cfg.blue,HEX)+"'>";
- h+="<div class='grid'><div><label>Closed effect</label><select name='closedFx'>"+option(0,cfg.closedEffect,"Off")+option(1,cfg.closedEffect,"Dim solid")+option(2,cfg.closedEffect,"Breathe")+"</select></div>";
- h+="<div><label>Open effect</label><select name='openFx'>"+option(0,cfg.openEffect,"Solid")+option(1,cfg.openEffect,"Scanner")+option(2,cfg.openEffect,"Breathe")+"</select></div></div>";
+ h+="<div class='grid'><div><label>Closed effect</label><select name='closedFx'>"+option(0,cfg.closedEffect,"Off")+option(1,cfg.closedEffect,"Dim solid")+option(2,cfg.closedEffect,"Breathe")+option(3,cfg.closedEffect,"Perimeter chase")+option(4,cfg.closedEffect,"Warning pulse")+option(5,cfg.closedEffect,"Reactor")+"</select></div>";
+ h+="<div><label>Open effect</label><select name='openFx'>"+option(0,cfg.openEffect,"Solid")+option(1,cfg.openEffect,"Scanner")+option(2,cfg.openEffect,"Breathe")+option(3,cfg.openEffect,"Perimeter chase")+option(4,cfg.openEffect,"Warning pulse")+option(5,cfg.openEffect,"Reactor")+option(6,cfg.openEffect,"Energy shimmer")+option(7,cfg.openEffect,"Dual sweep")+"</select></div></div>";
  h+="<h2>Timing</h2><div class='grid'><div><label>Opening step ms</label><input name='openSpd' type='number' min='5' max='500' value='"+String(cfg.openingSpeed)+"'></div><div><label>Closing step ms</label><input name='closeSpd' type='number' min='5' max='500' value='"+String(cfg.closingSpeed)+"'></div><div><label>Idle step ms</label><input name='idleSpd' type='number' min='10' max='1000' value='"+String(cfg.idleSpeed)+"'></div></div>";
  h+="<button type='submit'>SAVE SETTINGS</button></form><div class='card'><form method='POST' action='/preview'><button>PREVIEW OPEN EFFECT</button></form></div></main></body></html>";return h;
 }
@@ -138,7 +138,7 @@ uint8_t hexByte(String s){return (uint8_t)strtoul(s.c_str(),nullptr,16);}
 void handleSave(){
  cfg.pixelCount=constrain(server.arg("pixels").toInt(),1,(int)MAX_PIXELS);cfg.brightness=constrain(server.arg("brightness").toInt(),1,255);
  cfg.openingSpeed=constrain(server.arg("openSpd").toInt(),5,500);cfg.closingSpeed=constrain(server.arg("closeSpd").toInt(),5,500);cfg.idleSpeed=constrain(server.arg("idleSpd").toInt(),10,1000);
- cfg.closedEffect=constrain(server.arg("closedFx").toInt(),0,2);cfg.openEffect=constrain(server.arg("openFx").toInt(),0,2);
+ cfg.closedEffect=constrain(server.arg("closedFx").toInt(),0,5);cfg.openEffect=constrain(server.arg("openFx").toInt(),0,7);
  String c=server.arg("colour");if(c.length()==7){cfg.red=hexByte(c.substring(1,3));cfg.green=hexByte(c.substring(3,5));cfg.blue=hexByte(c.substring(5,7));}
  saveSettings();applyPixelSettings();animationStep=0;idlePosition=0;breathePhase=0;updateDisplay();
  Serial.println("[CONFIG] Settings saved to NVS");server.sendHeader("Location","/");server.send(303);
@@ -152,7 +152,7 @@ void startWeb(){
  server.onNotFound([](){server.sendHeader("Location","/");server.send(302);});server.begin();Serial.println("[WEB] Configuration server ready");
 }
 void setup(){
- Serial.begin(115200);delay(250);Serial.println("\n================================\n SCI-FI DOOR CONTROLLER v0.2.0\n================================");
+ Serial.begin(115200);delay(250);Serial.println("\n================================\n SCI-FI DOOR CONTROLLER v0.3.0\n================================");
  loadSettings();pinMode(PIN_LIMIT_SWITCH,INPUT_PULLUP);rawSwitchState=digitalRead(PIN_LIMIT_SWITCH);stableSwitchState=rawSwitchState;previousStableSwitchState=stableSwitchState;switchChangedAt=millis();
  pixels.begin();applyPixelSettings();Wire.begin(PIN_OLED_SDA,PIN_OLED_SCL);oledReady=display.begin(SSD1306_SWITCHCAPVCC,OLED_ADDRESS);
  if(oledReady){display.setRotation(2);Serial.println("[OLED] Online");}else Serial.println("[OLED] WARNING: not detected");
