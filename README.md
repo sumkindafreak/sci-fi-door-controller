@@ -16,7 +16,7 @@ The switch uses INPUT_PULLUP: **pressed/LOW = door closed**, **released/HIGH = d
 
 Power WS2812B LEDs from an appropriate external 5 V supply and connect the LED supply ground to ESP32 ground.
 
-## Firmware v0.1.0
+## Firmware v0.2.0
 Four non-blocking states: **CLOSED -> OPENING -> OPEN -> CLOSING**.
 
 - Closed: pixels off.
@@ -41,5 +41,21 @@ Install **Adafruit GFX Library**, **Adafruit SSD1306**, and **Adafruit NeoPixel*
 7. Open Serial Monitor at 115200.
 8. Press/release the switch and verify the state/effects.
 
+## Wi-Fi configuration
+
+On boot the controller creates the access point **SCI-FI-DOOR**. Connect using password **portal123**, then browse to **192.168.4.1**.
+
+The web UI can change and persist in ESP32 NVS:
+
+- Pixel count (1-1024)
+- Master brightness
+- RGB colour
+- Closed effect: Off, Dim Solid or Breathe
+- Open effect: Solid, Scanner or Breathe
+- Opening, closing and idle animation speeds
+- Open-effect preview
+
+The physical door controller continues running while the web interface is being used.
+
 ## Next
-Persistent settings and a local Wi-Fi configuration UI for pixel count, brightness, colours, speed and selectable effects.
+Bench-test v0.2.0 on the actual C3/OLED/limit-switch/LED hardware, then expand the effect library and refine the UI based on the real door layout.
